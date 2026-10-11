@@ -1,0 +1,19 @@
+{
+  "sheet": "weapons",
+  "doc": "Old Blood's player gun sounds swapped for Space Marine 2 shots. match = start of the Old Blood sound name (as shown by s_showStartSound); skip = rows whose name contains this are left alone (empty = none). Every matching sound is muted; the SM2 shot plays at most once per 'debounce' seconds per row, since one Old Blood shot starts several sounds (close + room + rear). Rows are tried top to bottom; name is shown on the HUD after firing.",
+  "columns": ["id", "match", "skip", "shot", "name", "debounce"],
+  "rows": [
+    {"id": "handgun_suppressed", "match": "weapons/handgun/player/handgun_suppressed", "skip": "", "shot": "shot_bolt_pistol_suppressed", "name": "Bolt Pistol (Suppressed)", "debounce": 0.04},
+    {"id": "handgun", "match": "weapons/handgun/player/", "skip": "", "shot": "shot_bolt_pistol", "name": "Bolt Pistol", "debounce": 0.04},
+    {"id": "assault_rifle", "match": "weapons/ar60/split/", "skip": "", "shot": "shot_bolter", "name": "Bolt Rifle", "debounce": 0.04},
+    {"id": "bolt_action", "match": "weapons/boltaction/bar_1p_", "skip": "dry", "shot": "shot_stalker", "name": "Stalker Bolt Rifle", "debounce": 0.08},
+    {"id": "kampfpistol", "match": "weapons/kampfpistol/env/", "skip": "", "shot": "shot_plasma", "name": "Plasma Incinerator", "debounce": 0.08},
+    {"id": "shotgun", "match": "weapons/shotgun/shotgun_fire", "skip": "", "shot": "shot_heavy_bolt_rifle", "name": "Heavy Bolt Rifle", "debounce": 0.06},
+    {"id": "auto_shotgun", "match": "weapons/shotgun/automatic_shotgun/fire", "skip": "", "shot": "shot_heavy_bolt_rifle", "name": "Heavy Bolt Rifle", "debounce": 0.06},
+    {"id": "grandpa_shotgun", "match": "weapons/grandpashotgun/grandpashotgun_fire", "skip": "", "shot": "shot_melta", "name": "Melta Rifle", "debounce": 0.06},
+    {"id": "sawed_off", "match": "weapons/sawed_off_shotgun/outdoor/", "skip": "dry", "shot": "shot_melta", "name": "Melta Rifle", "debounce": 0.06},
+    {"id": "mg46", "match": "weapons/mg46/mg46_fire", "skip": "", "shot": "shot_heavy_bolter", "name": "Heavy Bolter", "debounce": 0.04},
+    {"id": "m60", "match": "weapons/m60/m60_fire_close", "skip": "", "shot": "shot_heavy_bolter", "name": "Heavy Bolter", "debounce": 0.04},
+    {"id": "laser", "match": "weapons/laser/lasercutter_fire", "skip": "", "shot": "shot_lascannon", "name": "Lascannon", "debounce": 0.15}
+  ]
+}

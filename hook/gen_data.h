@@ -17,6 +17,8 @@
 #define HK_aiHealth 0x10  // AI health component (idAIHealth): health float; the vfHealth getter is movss xmm0,[rcx+10h]
 #define HK_plPos 0x3e4c  // player origin xyz
 #define HK_aiPos 0x40  // AI origin xyz
+#define HK_startSound 0x4bb1a0  // idSoundEmitter StartSound(this, handle* ret, int channel, idSoundShader* shader, ...); returns ret; shader name char* at shader+8; shader NULL -> *ret = 0, no sound
+#define HK_shaderName 0x08  // idSoundShader: name char*
 #define HK_evKill 0x17d4d20  // idEventDef kill (no args)
 #define HK_postEvent 0x81b020  // PostEvent(ent, evdef, 0)
 
@@ -50,6 +52,21 @@ static const VoiceDef kVoice[] = {
   {"hover", 1.0f, 0.0f},
   {"abilityReady", 0.5f, 30.0f},
 };
+struct WeaponDef { const char* id; const char* match; const char* skip; const char* shot; const char* name; float debounce; };
+static const WeaponDef kWeapons[] = {
+  {"handgun_suppressed", "weapons/handgun/player/handgun_suppressed", "", "shot_bolt_pistol_suppressed", "Bolt Pistol (Suppressed)", 0.04f},
+  {"handgun", "weapons/handgun/player/", "", "shot_bolt_pistol", "Bolt Pistol", 0.04f},
+  {"assault_rifle", "weapons/ar60/split/", "", "shot_bolter", "Bolt Rifle", 0.04f},
+  {"bolt_action", "weapons/boltaction/bar_1p_", "dry", "shot_stalker", "Stalker Bolt Rifle", 0.08f},
+  {"kampfpistol", "weapons/kampfpistol/env/", "", "shot_plasma", "Plasma Incinerator", 0.08f},
+  {"shotgun", "weapons/shotgun/shotgun_fire", "", "shot_heavy_bolt_rifle", "Heavy Bolt Rifle", 0.06f},
+  {"auto_shotgun", "weapons/shotgun/automatic_shotgun/fire", "", "shot_heavy_bolt_rifle", "Heavy Bolt Rifle", 0.06f},
+  {"grandpa_shotgun", "weapons/grandpashotgun/grandpashotgun_fire", "", "shot_melta", "Melta Rifle", 0.06f},
+  {"sawed_off", "weapons/sawed_off_shotgun/outdoor/", "dry", "shot_melta", "Melta Rifle", 0.06f},
+  {"mg46", "weapons/mg46/mg46_fire", "", "shot_heavy_bolter", "Heavy Bolter", 0.04f},
+  {"m60", "weapons/m60/m60_fire_close", "", "shot_heavy_bolter", "Heavy Bolter", 0.04f},
+  {"laser", "weapons/laser/lasercutter_fire", "", "shot_lascannon", "Lascannon", 0.15f},
+};
 static const float HUD_portraitX = 0.015f;
 static const float HUD_portraitY = 0.6f;
 static const float HUD_portraitH = 0.2f;
@@ -61,3 +78,4 @@ static const unsigned char HUD_activeColor[4] = {90, 170, 255, 230};
 static const unsigned char HUD_frameColor[4] = {20, 20, 20, 170};
 static const float HUD_powerOnSeconds = 2.0f;
 static const char HUD_abilityKey = 'V';
+static const float HUD_gunVolume = 0.7f;

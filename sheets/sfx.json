@@ -1,14 +1,23 @@
 {
   "sheet": "sfx",
-  "doc": "Space Marine 2 sound effects, by Wwise bank and event name. tools/gen.py resolves each event to its media ids in the player's own files (largest take wins) and bakes them into the launcher; the launcher extracts them at setup.",
-  "columns": ["id", "bank", "event"],
+  "doc": "Space Marine 2 sounds, by Wwise bank and event name. kind 'event' = the event's largest take (ability sounds); kind 'shot' = a first-person gun shot, built from one take of each layer mixed together (4 variants). tools/gen.py resolves media ids from the player's own files; the launcher extracts them at setup.",
+  "columns": ["id", "bank", "event", "kind"],
   "rows": [
-    {"id": "sfx_iron_halo", "bank": "ability", "event": "ability_barrier_start"},
-    {"id": "sfx_jump_pack", "bank": "ability", "event": "char_primaris_jetpack_3d_dash"},
-    {"id": "sfx_turret_shot", "bank": "ability", "event": "ability_shoulder_gun_shot"},
-    {"id": "sfx_auspex", "bank": "ability", "event": "ability_auspex_scan_activated"},
-    {"id": "sfx_grapnel", "bank": "ability", "event": "ability_grappling_hook_start"},
-    {"id": "sfx_banner", "bank": "ability", "event": "ability_banner_ultramar_start"},
-    {"id": "sfx_cloak", "bank": "ability", "event": "ability_invisible_on"}
+    {"id": "sfx_iron_halo", "bank": "ability", "event": "ability_barrier_start", "kind": "event"},
+    {"id": "sfx_jump_pack", "bank": "ability", "event": "char_primaris_jetpack_3d_dash", "kind": "event"},
+    {"id": "sfx_turret_shot", "bank": "ability", "event": "ability_shoulder_gun_shot", "kind": "event"},
+    {"id": "sfx_auspex", "bank": "ability", "event": "ability_auspex_scan_activated", "kind": "event"},
+    {"id": "sfx_grapnel", "bank": "ability", "event": "ability_grappling_hook_start", "kind": "event"},
+    {"id": "sfx_banner", "bank": "ability", "event": "ability_banner_ultramar_start", "kind": "event"},
+    {"id": "sfx_cloak", "bank": "ability", "event": "ability_invisible_on", "kind": "event"},
+    {"id": "shot_bolt_pistol", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolt_pistol", "kind": "shot"},
+    {"id": "shot_bolt_pistol_suppressed", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolt_pistol_suppressed", "kind": "shot"},
+    {"id": "shot_bolter", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolter", "kind": "shot"},
+    {"id": "shot_heavy_bolter", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolter_heavy", "kind": "shot"},
+    {"id": "shot_heavy_bolt_rifle", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolt_heavy_rifle", "kind": "shot"},
+    {"id": "shot_stalker", "bank": "wpn", "event": "wpn_firearm_shoot_2d_bolt_stalker_rifle", "kind": "shot"},
+    {"id": "shot_melta", "bank": "wpn", "event": "wpn_firearm_shoot_2d_meltagun", "kind": "shot"},
+    {"id": "shot_plasma", "bank": "wpn", "event": "wpn_plasma_incinerator_shot", "kind": "shot"},
+    {"id": "shot_lascannon", "bank": "wpn", "event": "wpn_firearm_shot_2d_lascannon", "kind": "shot"}
   ]
 }

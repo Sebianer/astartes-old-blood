@@ -1,6 +1,6 @@
 {
   "sheet": "hud",
-  "doc": "The class HUD drawn over Old Blood. Positions are fractions of the screen (0-1 from the top-left); sizes are fractions of screen height. Colours are RGBA 0-255.",
+  "doc": "The class HUD drawn over Old Blood, plus gunVolume (0-1, loudness of the SM2 gun shots). Positions are fractions of the screen (0-1 from the top-left); sizes are fractions of screen height. Colours are RGBA 0-255.",
   "columns": ["id", "value"],
   "rows": [
     {"id": "portraitX", "value": 0.015},
@@ -13,6 +13,7 @@
     {"id": "activeColor", "value": [90, 170, 255, 230]},
     {"id": "frameColor", "value": [20, 20, 20, 170]},
     {"id": "powerOnSeconds", "value": 2.0},
-    {"id": "abilityKey", "value": "V"}
+    {"id": "abilityKey", "value": "V"},
+    {"id": "gunVolume", "value": 0.7}
   ]
 }

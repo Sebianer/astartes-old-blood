@@ -3,7 +3,7 @@
 #   dinput8.dll                      -> Old Blood folder
 #   AstartesOldBlood/                -> Old Blood folder (launcher, vgmstream, credits)
 cd "$(dirname "$0")/.."
-VER=${1:-1.0.1}
+VER=${1:-1.0.4}
 python -I tools/gen.py || exit 1
 sh hook/build.sh || exit 1
 mkdir -p build/AstartesOldBlood

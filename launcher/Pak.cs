@@ -27,6 +27,9 @@ class Pak : IDisposable {
         return new Pak(s, baseOff + DataOffset(e), e.Size);
     }
 
+    // A compressed zip inside another one, unpacked into memory.
+    public static Pak FromBytes(byte[] zip) { return new Pak(new MemoryStream(zip), 0, -1); }
+
     public bool Has(string name) { return Entries.ContainsKey(name); }
 
     public byte[] Read(string name) { return Read(Entries[name]); }

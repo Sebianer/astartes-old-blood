@@ -155,6 +155,28 @@ static __declspec(noinline) void runCmd(char* line) {
         uint8_t* gl = (uint8_t*)_strtoui64(a, 0, 16); int off = (int)strtol(b, 0, 16);
         for (int i = 0; i < 4096; i++) { uint8_t* e = *(uint8_t**)(gl + off + i * 8); if (!e || !readable(e, 0x40)) continue; uint64_t vt = *(uint64_t*)e; const char* nm = readable(*(char**)(e + 0x20), 8) ? *(char**)(e + 0x20) : "?"; L("  [%d] %p vt=img+%llx %.60s\n", i, e, vt - (uint64_t)g_base, nm); }
     }
+    else if (!strcmp(op, "strs")) { // strs <prefix> [contains]: unique printable strings in memory starting with prefix
+        size_t n = strlen(a); std::map<std::string, int> seen;
+        scanRegions(true, [&](uint8_t* r, size_t sz) {
+            for (size_t i = 1; i + n < sz; i++) {
+                if (r[i] != (uint8_t)a[0] || r[i - 1] != 0 || memcmp(r + i, a, n)) continue;
+                size_t k = n; while (i + k < sz && k < 160 && r[i + k] >= 32 && r[i + k] < 127) k++;
+                if (i + k < sz && r[i + k] == 0) { std::string s((char*)r + i, k); if (!b[0] || strstr(s.c_str(), b)) seen[s]++; }
+            }
+        });
+        for (auto& kv : seen) L("  %s\n", kv.first.c_str());
+        L("unique %zu\n", seen.size());
+    }
+    else if (!strcmp(op, "entsf")) { // entsf <substr>: entities whose name contains substr
+        uint8_t* gl = *(uint8_t**)(g_base + 0x1823f68); if (!gl) return;
+        for (int i = 0; i < 4096; i++) { uint8_t* e = *(uint8_t**)(gl + 0x161D0 + i * 8); if (!e || !readable(e, 0x40)) continue; const char* nm = *(char**)(e + 0x20); if (!readable((void*)nm, 8) || !strstr(nm, a)) continue; L("  [%d] %p vt=img+%llx %.70s\n", i, e, *(uint64_t*)e - (uint64_t)g_base, nm); }
+    }
+    else if (!strcmp(op, "ptrsto")) { // ptrsto <obj> <len>: which qwords inside obj point at entities (index + name)
+        uint8_t* p = (uint8_t*)_strtoui64(a, 0, 16); int len = (int)strtol(b, 0, 16); if (!len) len = 0x4000;
+        uint8_t* gl = *(uint8_t**)(g_base + 0x1823f68); if (!gl) return;
+        std::map<uint64_t, int> idx; for (int i = 0; i < 4096; i++) { uint64_t e = *(uint64_t*)(gl + 0x161D0 + i * 8); if (e) idx[e] = i; }
+        for (int o = 0; o + 8 <= len; o += 8) { if (!readable(p + o, 8)) continue; uint64_t q = *(uint64_t*)(p + o); auto it = idx.find(q); if (it != idx.end()) L("  +%x -> [%d] %.60s\n", o, it->second, *(char**)(q + 0x20)); }
+    }
     else if (!strcmp(op, "dumps")) dumpS((uint8_t*)_strtoui64(a, 0, 16), atoi(b) ? atoi(b) : 0x100);
     else if (!strcmp(op, "base")) L("base %p\n", g_base);
     else if (!strcmp(op, "dumpimg")) {

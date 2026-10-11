@@ -7,6 +7,8 @@ https://melty.gg/m/astartes-the-old-blood
 - Per-class speed, jump, toughness and damage; an ability on **V** (Iron Halo, Jump Pack Surge, Servo Turret, Auspex
   Scan, Grapnel Rush, Banner, Camo Cloak).
 - Space Marine 2 voice barks, a class HUD and a deployment moment at each level start.
+- Old Blood's player gun sounds swapped for Space Marine 2 bolter, heavy bolter, stalker, melta, plasma and lascannon
+  shots (the game's StartSound is hooked; mapping in `sheets/weapons.json`).
 
 Art and audio are read from the player's own Space Marine 2 install at first start; this repository and the release
 contain no game files.
@@ -30,7 +32,7 @@ Needs Python 3, MSVC 2019 Build Tools (x64, see `tools/msvc.bat`), .NET Framewor
 
 ```sh
 python tools/gen.py "<Space Marine 2 folder>"   # optional arg: re-resolves sound effect ids from your paks
-sh tools/package.sh 1.0.3                       # -> build/AstartesOldBlood-1.0.3.zip
+sh tools/package.sh 1.0.4                       # -> build/AstartesOldBlood-1.0.4.zip
 ```
 
 Install: unpack the zip into the Old Blood folder and run `AstartesOldBlood/AstartesLauncher.exe --sm2 "<Space Marine 2 folder>"`.

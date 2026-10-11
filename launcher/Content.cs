@@ -9,8 +9,9 @@ using System.Linq;
 
 static class Content {
     public const int CardW = 396, CardH = 630;
-    public const string Version = "1";
+    public const string Version = "2"; // 2: gun shots
     const int MaxTakes = 4;
+    public const int ShotVariants = 4;
 
     public static readonly string Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AstartesOldBlood");
     public static readonly string Dir = Path.Combine(Root, "content");
@@ -86,10 +87,21 @@ static class Content {
         foreach (var s in GenData.Sfx) {
             Bank bank;
             if (!banks.TryGetValue(s.Bank, out bank)) banks[s.Bank] = bank = Bank.Load(paks, s.Bank);
-            byte[] wem = null;
-            foreach (uint m in s.Media) { wem = bank.Media(m); if (wem != null) break; }
-            if (wem != null) File.WriteAllBytes(Path.Combine(tmp, "s_" + s.Id + ".wem"), wem);
+            if (!s.Shot) {
+                byte[] wem = null;
+                foreach (uint m in s.Layers[0]) { wem = bank.Media(m); if (wem != null) break; }
+                if (wem != null) File.WriteAllBytes(Path.Combine(tmp, "s_" + s.Id + ".wem"), wem);
+                continue;
+            }
+            // gun shot: variant v takes the v-th take of every layer; the layers are mixed after decoding
+            for (int v = 0; v < ShotVariants; v++)
+                for (int l = 0; l < s.Layers.Length; l++) {
+                    var takes = s.Layers[l];
+                    byte[] wem = takes.Length > 0 ? bank.Media(takes[v % takes.Length]) : null;
+                    if (wem != null) File.WriteAllBytes(Path.Combine(tmp, "g_" + s.Id + "_" + v + "_" + l + ".wem"), wem);
+                }
         }
+        foreach (var b in banks.Values) b.Dispose();
 
         progress("Decoding audio");
         string cli = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"vgmstream\vgmstream-cli.exe");
@@ -101,9 +113,17 @@ static class Content {
             using (var p = Process.Start(psi)) { p.StandardOutput.ReadToEnd(); p.StandardError.ReadToEnd(); p.WaitForExit(); }
             progress("Decoding audio " + Math.Min(i + 60, wems.Count) + "/" + wems.Count);
         }
+        progress("Mixing gun shots");
+        foreach (var s in GenData.Sfx.Where(x => x.Shot))
+            for (int v = 0; v < ShotVariants; v++) {
+                var parts = Directory.GetFiles(tmp, "g_" + s.Id + "_" + v + "_*.wav").OrderBy(x => x).ToList();
+                if (parts.Count > 0) Wav.Mix(parts, Path.Combine(Dir, "sfx", s.Id + "_" + v + ".wav"));
+                foreach (var p in parts) File.Delete(p);
+            }
         foreach (string wav in Directory.GetFiles(tmp, "*.wav")) {
             string n = Path.GetFileNameWithoutExtension(wav);
             if (n.EndsWith(".wem")) n = n.Substring(0, n.Length - 4);
+            if (n.StartsWith("g_")) continue;
             string dst = n.StartsWith("v_") ? Path.Combine(Dir, "voice", n.Substring(2) + ".wav") : Path.Combine(Dir, "sfx", n.Substring(2) + ".wav");
             if (File.Exists(dst)) File.Delete(dst);
             File.Move(wav, dst);
@@ -115,18 +135,78 @@ static class Content {
     }
 }
 
-// Embedded media of one Wwise sound bank (DIDX index + DATA blob).
-class Bank {
+// PCM16 WAV mixing: the layers of one gun shot summed into one file.
+static class Wav {
+    class Pcm { public int Channels, Rate; public short[] S; }
+
+    static Pcm Read(string path) {
+        byte[] b = File.ReadAllBytes(path);
+        var w = new Pcm();
+        int p = 12;
+        while (p + 8 <= b.Length) {
+            string tag = System.Text.Encoding.ASCII.GetString(b, p, 4); int sz = BitConverter.ToInt32(b, p + 4);
+            if (tag == "fmt ") {
+                if (BitConverter.ToInt16(b, p + 8) != 1 || BitConverter.ToInt16(b, p + 22) != 16) return null;
+                w.Channels = BitConverter.ToInt16(b, p + 10); w.Rate = BitConverter.ToInt32(b, p + 12);
+            } else if (tag == "data") {
+                sz = Math.Min(sz, b.Length - p - 8);
+                w.S = new short[sz / 2]; Buffer.BlockCopy(b, p + 8, w.S, 0, sz / 2 * 2);
+            }
+            p += 8 + sz + (sz & 1);
+        }
+        return w.S != null && w.Channels > 0 ? w : null;
+    }
+
+    public static void Mix(List<string> parts, string dst) {
+        var ins = parts.Select(Read).Where(x => x != null).ToList();
+        if (ins.Count == 0) return;
+        int ch = ins.Max(x => x.Channels), rate = ins[0].Rate;
+        ins = ins.Where(x => x.Rate == rate).ToList();
+        int frames = ins.Max(x => x.S.Length / x.Channels);
+        var acc = new int[frames * ch];
+        foreach (var w in ins)
+            for (int f = 0; f < w.S.Length / w.Channels; f++)
+                for (int c = 0; c < ch; c++) acc[f * ch + c] += w.S[f * w.Channels + Math.Min(c, w.Channels - 1)];
+        int peak = 1; foreach (int a in acc) peak = Math.Max(peak, Math.Abs(a));
+        double gain = peak > 30000 ? 30000.0 / peak : 1.0; // summed layers can exceed 16 bits: scale instead of clipping
+        var outp = new byte[acc.Length * 2];
+        for (int i = 0; i < acc.Length; i++) { short v = (short)Math.Max(-32768, Math.Min(32767, (int)(acc[i] * gain))); outp[i * 2] = (byte)v; outp[i * 2 + 1] = (byte)(v >> 8); }
+        using (var f = new BinaryWriter(File.Create(dst))) {
+            f.Write(System.Text.Encoding.ASCII.GetBytes("RIFF")); f.Write(36 + outp.Length); f.Write(System.Text.Encoding.ASCII.GetBytes("WAVEfmt "));
+            f.Write(16); f.Write((short)1); f.Write((short)ch); f.Write(rate); f.Write(rate * ch * 2); f.Write((short)(ch * 2)); f.Write((short)16);
+            f.Write(System.Text.Encoding.ASCII.GetBytes("data")); f.Write(outp.Length); f.Write(outp);
+        }
+    }
+}
+
+// Media of one Wwise sound bank: embedded (DIDX index + DATA blob) or streamed (<bank>.zip of <id>.wem).
+class Bank : IDisposable {
     readonly Dictionary<uint, long[]> index = new Dictionary<uint, long[]>();
     byte[] data;
+    Pak streamPak, streamOuter;
 
     public static Bank Load(string paks, string name) {
-        string member = "sounds/desktop/" + name + ".bnk";
-        foreach (string f in Directory.GetFiles(paks, "default_sound*.pak"))
-            using (var pak = new Pak(f))
-                if (pak.Has(member)) return new Bank(pak.Read(member));
-        throw new Exception("sound bank " + name + " not found");
+        string member = "sounds/desktop/" + name + ".bnk", zmember = "sounds/desktop/" + name + ".zip";
+        byte[] bnk = null; Pak stream = null, outer = null;
+        foreach (string f in Directory.GetFiles(paks, "default_sound*.pak")) {
+            var pak = new Pak(f);
+            bool keep = false;
+            if (bnk == null && pak.Has(member)) bnk = pak.Read(member);
+            if (stream == null && pak.Has(zmember)) {
+                var e = pak.Entries[zmember];
+                if (e.Method == 0) { stream = pak.OpenInner(zmember); outer = pak; keep = true; }
+                else stream = Pak.FromBytes(pak.Read(e));
+            }
+            if (!keep) pak.Dispose();
+            if (bnk != null && stream != null) break;
+        }
+        if (bnk == null && stream == null) throw new Exception("sound bank " + name + " not found");
+        var bank = new Bank(bnk ?? new byte[0]);
+        bank.streamPak = stream; bank.streamOuter = outer;
+        return bank;
     }
+
+    public void Dispose() { if (streamOuter != null) streamOuter.Dispose(); }
 
     Bank(byte[] b) {
         int p = 0;
@@ -143,9 +223,12 @@ class Bank {
 
     public byte[] Media(uint id) {
         long[] e;
-        if (data == null || !index.TryGetValue(id, out e)) return null;
-        byte[] r = new byte[e[1]];
-        Buffer.BlockCopy(data, (int)e[0], r, 0, (int)e[1]);
-        return r;
+        if (data != null && index.TryGetValue(id, out e)) {
+            byte[] r = new byte[e[1]];
+            Buffer.BlockCopy(data, (int)e[0], r, 0, (int)e[1]);
+            return r;
+        }
+        string n = id + ".wem";
+        return streamPak != null && streamPak.Has(n) ? streamPak.Read(n) : null;
     }
 }

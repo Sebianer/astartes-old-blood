@@ -19,14 +19,24 @@ static class GenData {
         new[] { "hover", "gatherup_ready_to_go_confirm" },
         new[] { "abilityReady", "social_ability_ready" },
     };
-    public class SfxRow { public string Id, Bank; public uint[] Media; }
+    // Layers: one list of alternative takes per layer. kind event: first take found; kind shot: one take per layer, mixed
+    public class SfxRow { public string Id, Bank; public bool Shot; public uint[][] Layers; }
     public static readonly SfxRow[] Sfx = {
-        new SfxRow { Id = "sfx_iron_halo", Bank = "ability", Media = new uint[] { 991093882u, 130462703u, 677593648u, 94929346u } },
-        new SfxRow { Id = "sfx_jump_pack", Bank = "ability", Media = new uint[] { 596626445u, 14028347u, 223422891u, 306447303u, 383656980u, 311083875u, 577792702u, 764994629u, 6117087u, 739747412u, 383495022u, 299865246u } },
-        new SfxRow { Id = "sfx_turret_shot", Bank = "ability", Media = new uint[] { 99826472u } },
-        new SfxRow { Id = "sfx_auspex", Bank = "ability", Media = new uint[] { 1022340647u } },
-        new SfxRow { Id = "sfx_grapnel", Bank = "ability", Media = new uint[] { 718077222u, 65547951u, 4940722u, 531649839u, 790417073u, 625497694u, 340509048u, 763312977u, 278334940u, 1055401645u, 556927125u } },
-        new SfxRow { Id = "sfx_banner", Bank = "ability", Media = new uint[] { 286492974u } },
-        new SfxRow { Id = "sfx_cloak", Bank = "ability", Media = new uint[] { 98017732u, 651280071u, 412040629u, 415904804u, 202120946u } },
+        new SfxRow { Id = "sfx_iron_halo", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 991093882u, 130462703u, 677593648u, 94929346u } } },
+        new SfxRow { Id = "sfx_jump_pack", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 596626445u, 14028347u, 223422891u, 306447303u, 383656980u, 311083875u, 577792702u, 764994629u, 6117087u, 739747412u, 383495022u, 299865246u } } },
+        new SfxRow { Id = "sfx_turret_shot", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 99826472u } } },
+        new SfxRow { Id = "sfx_auspex", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 1022340647u } } },
+        new SfxRow { Id = "sfx_grapnel", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 718077222u, 65547951u, 4940722u, 531649839u, 790417073u, 625497694u, 340509048u, 763312977u, 278334940u, 1055401645u, 556927125u } } },
+        new SfxRow { Id = "sfx_banner", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 286492974u } } },
+        new SfxRow { Id = "sfx_cloak", Bank = "ability", Shot = false, Layers = new uint[][] { new uint[] { 98017732u, 651280071u, 412040629u, 415904804u, 202120946u } } },
+        new SfxRow { Id = "shot_bolt_pistol", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 396899395u, 85620863u, 1000273645u, 707670915u, 517776766u, 154909927u }, new uint[] { 271308134u, 63089615u, 565771458u, 313689759u, 635764591u, 1006733872u } } },
+        new SfxRow { Id = "shot_bolt_pistol_suppressed", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 939337117u, 292291552u, 116253129u, 153583225u, 576907205u, 1021538957u }, new uint[] { 313689759u, 565771458u, 635764591u, 271308134u, 63089615u, 1006733872u }, new uint[] { 884632815u, 535424502u, 523774152u, 791071219u, 656549962u, 406336161u, 1051858015u, 202967337u, 439174276u } } },
+        new SfxRow { Id = "shot_bolter", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 842272u, 974636419u, 191590433u, 121771131u, 932977643u, 727860200u, 936051554u, 718686575u }, new uint[] { 829924149u, 631658564u, 1029096307u, 1002008914u, 586537877u, 1040297016u } } },
+        new SfxRow { Id = "shot_heavy_bolter", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 265021970u, 190525850u, 673054916u }, new uint[] { 1057676498u, 611021770u, 798511098u, 293413113u, 81861171u, 172293687u, 129964880u, 162350822u, 667142191u, 81197282u }, new uint[] { 987374844u, 347972947u, 24035976u, 727889683u, 237930077u, 952397889u, 640910040u, 28477561u, 688890471u, 3350217u } } },
+        new SfxRow { Id = "shot_heavy_bolt_rifle", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 713735541u, 261595220u, 1068757409u, 327629971u }, new uint[] { 712852853u, 225177875u, 217868382u, 1067166779u, 232795437u, 785699050u, 669499937u, 41000208u, 442063317u } } },
+        new SfxRow { Id = "shot_stalker", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 620644227u, 630247922u, 943685003u, 714504072u, 14644406u, 567414037u, 145125411u, 655870253u, 180751101u }, new uint[] { 670523341u, 307238722u, 601851671u, 197324352u } } },
+        new SfxRow { Id = "shot_melta", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 126702668u, 306572752u, 668010965u, 175742980u, 158226365u }, new uint[] { 233086872u, 548400902u, 473349187u, 725234561u, 65861572u } } },
+        new SfxRow { Id = "shot_plasma", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 1066712297u, 128243931u, 108712543u, 392397758u, 644207550u, 720444580u, 852676771u } } },
+        new SfxRow { Id = "shot_lascannon", Bank = "wpn", Shot = true, Layers = new uint[][] { new uint[] { 739671040u, 1043029474u, 568010503u, 81657404u, 754473077u, 87118781u, 42038346u } } },
     };
 }

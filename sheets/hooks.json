@@ -19,6 +19,8 @@
     {"id": "aiHealth", "kind": "off", "value": "0x10", "note": "AI health component (idAIHealth): health float; the vfHealth getter is movss xmm0,[rcx+10h]"},
     {"id": "plPos", "kind": "off", "value": "0x3e4c", "note": "player origin xyz"},
     {"id": "aiPos", "kind": "off", "value": "0x40", "note": "AI origin xyz"},
+    {"id": "startSound", "kind": "rva", "value": "0x4bb1a0", "note": "idSoundEmitter StartSound(this, handle* ret, int channel, idSoundShader* shader, ...); returns ret; shader name char* at shader+8; shader NULL -> *ret = 0, no sound"},
+    {"id": "shaderName", "kind": "off", "value": "0x08", "note": "idSoundShader: name char*"},
     {"id": "evKill", "kind": "rva", "value": "0x17d4d20", "note": "idEventDef kill (no args)"},
     {"id": "postEvent", "kind": "rva", "value": "0x81b020", "note": "PostEvent(ent, evdef, 0)"}
   ]

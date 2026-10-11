@@ -105,6 +105,44 @@ def resolve(bank, streamed_ids, event):
     return out
 
 
+def shot_layers(bank, streamed, event):
+    """A gun shot as layers of alternative takes: [[media, ...], ...]; one take per layer, mixed, is one shot.
+    Uses the event's first Play target (the gun's own sound); later targets are shared room tails."""
+    eid = fnv1(event)
+    if eid not in bank.objs:
+        return None
+    kids = children_map(bank)
+    _, ebody = bank.objs[eid]
+    target = None
+    for a in struct.unpack_from("<%dI" % ebody[0], ebody, 1):
+        typ, tgt = struct.unpack_from("<HI", bank.objs[a][1], 0)
+        if typ == 0x0403 and tgt in bank.objs:
+            target = tgt
+            break
+    known = set(bank.media) | set(streamed)
+
+    def takes(o):  # every media under o (alternatives)
+        t, b = bank.objs[o]
+        if t == 2:
+            m = struct.unpack_from("<I", b, 5)[0]
+            return [m] if m in known else []
+        return [m for c in kids.get(o, []) for m in takes(c)]
+
+    def layers(o):
+        t, b = bank.objs[o]
+        ch = kids.get(o, [])
+        if t == 9:  # layer container: every child plays at once
+            return [l for c in ch for l in layers(c)]
+        if t == 5 and len(ch) == 1:
+            return layers(ch[0])
+        if t == 5 and ch and all(bank.objs[c][0] == 9 for c in ch):  # alternative layered shots: take the first
+            return layers(ch[0])
+        tk = takes(o)
+        return [tk] if tk else []
+
+    return layers(target) if target else None
+
+
 def load(root, bank_name):
     member = f"sounds/desktop/{bank_name}.bnk"
     z = find_in_paks(root, member)

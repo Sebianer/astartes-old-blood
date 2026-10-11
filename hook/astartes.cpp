@@ -187,6 +187,85 @@ static void say(const char* role, bool force = false) {
 }
 static void sfx(const char* id) { auto it = g_sfx.find(id); if (it != g_sfx.end()) g_sfxCh.play(&it->second); }
 
+// ---------------------------------------------------------------- SM2 gun shots in place of Old Blood's player gun sounds
+// The game's StartSound is hooked: a player gun sound (sheets/weapons.json) is not started; instead the game thread
+// queues the weapon row and the gun thread plays one of that gun's SM2 shots on a small pool of channels (shots overlap).
+static std::map<std::string, std::vector<Wav>> g_shots; // shot id -> variants
+static const std::vector<Wav>* g_weaponShots[sizeof(kWeapons) / sizeof(kWeapons[0])];
+static Channel g_gunCh[4]; static int g_gunNext;
+static HANDLE g_gunEvent; static std::mutex g_gunMu; static std::vector<int> g_gunQueue;
+static double g_weaponLast[sizeof(kWeapons) / sizeof(kWeapons[0])];
+static volatile int g_lastWeapon = -1; static volatile double g_lastWeaponAt = -100;
+static volatile long g_gunSoundsMuted, g_gunShotsPlayed;
+
+static void scaleWav(Wav& w, float gain) {
+    if (gain >= 0.999f) return;
+    short* s = (short*)w.pcm.data(); for (size_t i = 0; i < w.pcm.size() / 2; i++) s[i] = (short)(s[i] * gain);
+}
+static void loadShots() {
+    for (auto& w : kWeapons) {
+        if (g_shots.count(w.shot)) continue;
+        auto& v = g_shots[w.shot];
+        for (int i = 0; i < 4; i++) { Wav x; if (loadWav(g_content + "\\sfx\\" + w.shot + "_" + std::to_string(i) + ".wav", x)) { scaleWav(x, HUD_gunVolume); v.push_back(std::move(x)); } }
+    }
+    int n = 0;
+    for (size_t i = 0; i < sizeof(kWeapons) / sizeof(kWeapons[0]); i++) { auto& v = g_shots[kWeapons[i].shot]; g_weaponShots[i] = v.empty() ? nullptr : &v; n += !v.empty(); }
+    L("gun shots: %d of %zu weapons have SM2 shots\n", n, sizeof(kWeapons) / sizeof(kWeapons[0]));
+}
+static DWORD WINAPI gunThread(LPVOID) {
+    for (;;) {
+        WaitForSingleObject(g_gunEvent, INFINITE);
+        std::vector<int> q; { std::lock_guard<std::mutex> lk(g_gunMu); q.swap(g_gunQueue); }
+        for (int w : q) {
+            const std::vector<Wav>* v = g_weaponShots[w]; if (!v || v->empty()) continue;
+            g_gunCh[g_gunNext++ & 3].play(&(*v)[rand() % v->size()]);
+            InterlockedIncrement(&g_gunShotsPlayed);
+        }
+    }
+}
+// Which weapons.json row a sound name belongs to, or -1. Runs on the game thread for every sound: keep it cheap.
+static char g_testMatch[128]; // debug: sounds starting with this count as weapons.json row 1
+static int matchWeapon(const char* n) {
+    if (g_testMatch[0] && !strncmp(n, g_testMatch, strlen(g_testMatch))) return 1;
+    if (n[0] != 'w' || strncmp(n, "weapons/", 8)) return -1;
+    for (int i = 0; i < (int)(sizeof(kWeapons) / sizeof(kWeapons[0])); i++) {
+        const WeaponDef& w = kWeapons[i];
+        if (strncmp(n, w.match, strlen(w.match))) continue;
+        if (w.skip[0] && strstr(n, w.skip)) return -1;
+        return i;
+    }
+    return -1;
+}
+static int weaponForShader(uint8_t* shader) {
+    __try { const char* n = *(const char**)(shader + HK_shaderName); return n ? matchWeapon(n) : -1; }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return -1; }
+}
+typedef int* (*StartSound_t)(void*, int*, int, uint8_t*, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+static StartSound_t o_StartSound;
+// Extra stack arguments are passed through untouched (the caller owns them), so the original sees its real arguments.
+static int* hk_StartSound(void* self, int* ret, int channel, uint8_t* shader, uint64_t a5, uint64_t a6, uint64_t a7, uint64_t a8, uint64_t a9, uint64_t a10, uint64_t a11, uint64_t a12) {
+    int w = shader ? weaponForShader(shader) : -1;
+    if (w < 0) return o_StartSound(self, ret, channel, shader, a5, a6, a7, a8, a9, a10, a11, a12);
+    InterlockedIncrement(&g_gunSoundsMuted);
+    double t = now();
+    if (t - g_weaponLast[w] >= kWeapons[w].debounce) {
+        g_weaponLast[w] = t; g_lastWeapon = w; g_lastWeaponAt = t;
+        { std::lock_guard<std::mutex> lk(g_gunMu); g_gunQueue.push_back(w); }
+        SetEvent(g_gunEvent);
+    }
+    if (ret) *ret = 0; // what StartSound itself returns when there is nothing to play
+    return ret;
+}
+static void hookStartSound() {
+    uint8_t* fn = g_base + HK_startSound;
+    static const uint8_t prologue[] = { 0x48, 0x8b, 0xc4, 0x55, 0x53, 0x56, 0x57, 0x41, 0x54 }; // mov rax,rsp; push rbp,rbx,rsi,rdi,r12
+    if (memcmp(fn, prologue, sizeof prologue)) { L("StartSound prologue differs; gun sounds stay vanilla\n"); return; }
+    if (MH_CreateHook(fn, (void*)hk_StartSound, (void**)&o_StartSound) != MH_OK || MH_EnableHook(fn) != MH_OK) { L("StartSound hook failed\n"); return; }
+    g_gunEvent = CreateEventA(0, FALSE, FALSE, 0);
+    CreateThread(0, 0, gunThread, 0, 0, 0);
+    L("StartSound hooked: SM2 gun shots on\n");
+}
+
 // ---------------------------------------------------------------- session + test reporting
 static const ClassDef* g_class; static const AbilityDef* g_ab;
 static bool g_skipIntro, g_deployMoment, g_debug;
@@ -414,6 +493,11 @@ static void drawHud(HDC hdc) {
     static const unsigned char white[4] = { 235, 235, 235, 255 };
     char line[96];
     sprintf_s(line, "%s", g_class->name); text(x, by + bh + g_fontPx * 1.2f, line, HUD_readyColor, alpha);
+    if (g_lastWeapon >= 0) { // the SM2 name of the gun last fired, dimmed after a while
+        static const unsigned char grey[4] = { 200, 200, 200, 255 };
+        float fade = (float)max(0.45, 1.0 - (t - g_lastWeaponAt) / 20.0);
+        text(x, by + bh + g_fontPx * 3.6f, kWeapons[g_lastWeapon].name, grey, alpha * fade);
+    }
     if (act >= 0 && act < 1) sprintf_s(line, "%s  ACTIVE", g_ab->name);
     else if (t >= g_abilityReadyAt) sprintf_s(line, "[%c] %s  READY", HUD_abilityKey, g_ab->name);
     else sprintf_s(line, "%s  %.0fs", g_ab->name, ceil(g_abilityReadyAt - t));
@@ -492,6 +576,24 @@ static void debugCmd(char* line) {
         L("posted\n");
     }
     else if (!strcmp(op, "aioff")) { g_aiHealthOff = (int)strtol(a, 0, 16); g_aiHealthOk = false; L("aioff %x\n", g_aiHealthOff); }
+    else if (!strcmp(op, "guns")) L("gun sounds muted %ld, SM2 shots played %ld, last %s\n", g_gunSoundsMuted, g_gunShotsPlayed, g_lastWeapon >= 0 ? kWeapons[g_lastWeapon].name : "-");
+    else if (!strcmp(op, "snapi") || !strcmp(op, "diffi")) { // int32s in gameLocal that grew by 500..10000 since snapi
+        static std::vector<int> snap; uint8_t* gl = gameLocal(); if (!gl) return; const int len = 0x50000;
+        std::vector<int> cur(len / 4); for (int o = 0; o < len; o += 8) if (readable(gl + o, 8)) memcpy(&cur[o / 4], gl + o, 8);
+        if (op[0] == 'd' && snap.size() == cur.size()) for (size_t i = 0; i < cur.size(); i++) {
+            int d = cur[i] - snap[i]; if (d >= 30 && d <= 5000000) L("  +%zx int %d -> %d (+%d)\n", i * 4, snap[i], cur[i], d);
+            float f0, f1; memcpy(&f0, &snap[i], 4); memcpy(&f1, &cur[i], 4);
+            if (f1 - f0 > 1.5f && f1 - f0 < 2.6f && f0 > 2) L("  +%zx float %g -> %g\n", i * 4, f0, f1);
+            if (!(i & 1) && i + 1 < cur.size()) { long long a, b; memcpy(&a, &snap[i], 8); memcpy(&b, &cur[i], 8); long long dd = b - a; if (dd > 1000000 && dd < 3000000) L("  +%zx i64 +%lld\n", i * 4, dd); }
+        }
+        snap = cur; L("snapi ok\n");
+    }
+    else if (!strcmp(op, "cursor")) {
+        CURSORINFO ci{ sizeof ci }; GetCursorInfo(&ci); RECT clip; GetClipCursor(&clip);
+        L("cursor flags %lu handle %p pos %ld,%ld clip %ld,%ld-%ld,%ld\n", ci.flags, ci.hCursor, ci.ptScreenPos.x, ci.ptScreenPos.y, clip.left, clip.top, clip.right, clip.bottom);
+    }
+    else if (!strcmp(op, "testmatch")) { strncpy_s(g_testMatch, a, _TRUNCATE); L("testmatch '%s'\n", g_testMatch); }
+    else if (!strcmp(op, "shot")) { for (int i = 0; i < (int)(sizeof(kWeapons) / sizeof(kWeapons[0])); i++) if (!strcmp(kWeapons[i].id, a)) { std::lock_guard<std::mutex> lk(g_gunMu); g_gunQueue.push_back(i); SetEvent(g_gunEvent); } }
     else if (!strcmp(op, "say")) say(a, true);
     else if (!strcmp(op, "sfx")) sfx(a);
     else L("unknown\n");
@@ -543,7 +645,9 @@ static DWORD WINAPI worker(LPVOID) {
     double introUntil = g_skipIntro ? now() + 25 : 0;
     while (now() < introUntil - 24) { setCvar("com_skipIntroVideo", 1); Sleep(1); }
     loadAudio(g_class->id);
+    loadShots();
     hookSwap();
+    hookStartSound();
     for (;;) {
         double t = now();
         if (t < introUntil) { while (now() - t < 0.016) { setCvar("com_skipIntroVideo", 1); Sleep(1); } continue; }
