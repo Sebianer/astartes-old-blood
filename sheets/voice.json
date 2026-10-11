@@ -1,0 +1,12 @@
+{
+  "sheet": "voice",
+  "doc": "When the marine speaks. event is the Space Marine 2 voice event; the line is read from the picked class's own set (vo_chatter_<voiceId>_<event>_NN.wem), a random take each time. chance is 0-1, cooldown in seconds since the last line of this kind.",
+  "columns": ["id", "event", "chance", "cooldown"],
+  "rows": [
+    {"id": "deploy", "event": "wave_start_chaos", "chance": 1, "cooldown": 0},
+    {"id": "kill", "event": "kill_chaos_gen", "chance": 0.35, "cooldown": 6},
+    {"id": "lowHealth", "event": "low_health", "chance": 1, "cooldown": 20},
+    {"id": "hover", "event": "gatherup_ready_to_go_confirm", "chance": 1, "cooldown": 0},
+    {"id": "abilityReady", "event": "social_ability_ready", "chance": 0.5, "cooldown": 30}
+  ]
+}

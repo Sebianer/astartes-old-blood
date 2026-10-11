@@ -1,0 +1,25 @@
+{
+  "sheet": "hooks",
+  "doc": "Where things live inside Wolfenstein: The Old Blood (WolfOldBlood_x64.exe, image size imageSize). rva = offset from the exe's base; off = offset inside an object. The hook refuses to touch the game when imageSize differs.",
+  "columns": ["id", "kind", "value", "note"],
+  "rows": [
+    {"id": "imageSize", "kind": "size", "value": "0x247a000", "note": "SizeOfImage of the verified build"},
+    {"id": "gameLocal", "kind": "rva", "value": "0x1823f68", "note": "idGameLocal* global"},
+    {"id": "entities", "kind": "off", "value": "0x161D0", "note": "gameLocal: idEntity* [4096], [0] = player"},
+    {"id": "activeList", "kind": "off", "value": "0x46208", "note": "gameLocal: idEntity** of entities that think this frame"},
+    {"id": "activeCount", "kind": "off", "value": "0x46210", "note": "gameLocal: int count of activeList"},
+    {"id": "vtAI", "kind": "rva", "value": "0xf0d088", "note": "idAI2 vtable"},
+    {"id": "vtPlayer", "kind": "rva", "value": "0x1004c38", "note": "idPlayer vtable"},
+    {"id": "vfHealthComp", "kind": "off", "value": "0x300", "note": "entity vtable slot: health component getter"},
+    {"id": "vfHealth", "kind": "off", "value": "0x78", "note": "health component vtable slot: health float"},
+    {"id": "vfMaxHealth", "kind": "off", "value": "0x80", "note": "health component vtable slot: max health float"},
+    {"id": "plHealth", "kind": "off", "value": "0x08", "note": "player health component: health float"},
+    {"id": "plArmour", "kind": "off", "value": "0x10", "note": "player health component: armour float"},
+    {"id": "plArmourMax", "kind": "off", "value": "0x14", "note": "player health component: armour max float"},
+    {"id": "aiHealth", "kind": "off", "value": "0x10", "note": "AI health component (idAIHealth): health float; the vfHealth getter is movss xmm0,[rcx+10h]"},
+    {"id": "plPos", "kind": "off", "value": "0x3e4c", "note": "player origin xyz"},
+    {"id": "aiPos", "kind": "off", "value": "0x40", "note": "AI origin xyz"},
+    {"id": "evKill", "kind": "rva", "value": "0x17d4d20", "note": "idEventDef kill (no args)"},
+    {"id": "postEvent", "kind": "rva", "value": "0x81b020", "note": "PostEvent(ent, evdef, 0)"}
+  ]
+}

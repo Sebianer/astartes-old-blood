@@ -1,0 +1,15 @@
+# build output
+build/
+*.obj
+*.exp
+*.lib
+*.dll
+*.exe
+*.log
+# lab: the user's own game config and research binaries
+lab/wolftobConfig.cfg.orig
+# third-party binaries: download vgmstream r2117 (vgmstream-win64.zip) into third_party/vgmstream/
+third_party/vgmstream/
+# session notes
+HANDOFF.md
+__pycache__/

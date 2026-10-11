@@ -1,0 +1,18 @@
+{
+  "sheet": "hud",
+  "doc": "The class HUD drawn over Old Blood. Positions are fractions of the screen (0-1 from the top-left); sizes are fractions of screen height. Colours are RGBA 0-255.",
+  "columns": ["id", "value"],
+  "rows": [
+    {"id": "portraitX", "value": 0.015},
+    {"id": "portraitY", "value": 0.60},
+    {"id": "portraitH", "value": 0.20},
+    {"id": "barH", "value": 0.012},
+    {"id": "textH", "value": 0.022},
+    {"id": "readyColor", "value": [235, 190, 60, 230]},
+    {"id": "chargeColor", "value": [120, 120, 120, 200]},
+    {"id": "activeColor", "value": [90, 170, 255, 230]},
+    {"id": "frameColor", "value": [20, 20, 20, 170]},
+    {"id": "powerOnSeconds", "value": 2.0},
+    {"id": "abilityKey", "value": "V"}
+  ]
+}

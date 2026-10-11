@@ -1,0 +1,14 @@
+{
+  "sheet": "classes",
+  "doc": "One row per Space Marine 2 class the player can pick. sm2Id is the class id inside Space Marine 2's files (card art, voice lines). Stats are applied to Old Blood's own movement and damage settings while the class is active. Voice lines come from voice.json (same event for every class, read from that class's own voice set).",
+  "columns": ["id", "name", "sm2Id", "voiceId", "wave", "card", "runSpeed", "sprintSpeed", "jumpHeight", "damageTaken", "damageDealt", "ability"],
+  "rows": [
+    {"id": "heavy", "name": "Heavy", "sm2Id": "support", "voiceId": "support", "wave": 1, "card": "card_support", "runSpeed": 225, "sprintSpeed": 390, "jumpHeight": 52, "damageTaken": 0.55, "damageDealt": 1.25, "ability": "iron_halo"},
+    {"id": "assault", "name": "Assault", "sm2Id": "raider", "voiceId": "raider", "wave": 1, "card": "card_raider", "runSpeed": 300, "sprintSpeed": 540, "jumpHeight": 80, "damageTaken": 0.8, "damageDealt": 1.15, "ability": "jump_pack_surge"},
+    {"id": "techmarine", "name": "Techmarine", "sm2Id": "engineer", "voiceId": "engineer", "wave": 1, "card": "card_engineer", "runSpeed": 260, "sprintSpeed": 450, "jumpHeight": 62, "damageTaken": 0.7, "damageDealt": 1.1, "ability": "servo_turret"},
+    {"id": "tactical", "name": "Tactical", "sm2Id": "soldier", "voiceId": "soldier", "wave": 2, "card": "card_soldier", "runSpeed": 270, "sprintSpeed": 470, "jumpHeight": 62, "damageTaken": 0.7, "damageDealt": 1.15, "ability": "auspex_scan"},
+    {"id": "vanguard", "name": "Vanguard", "sm2Id": "berserk", "voiceId": "berserker", "wave": 2, "card": "card_berserk", "runSpeed": 290, "sprintSpeed": 510, "jumpHeight": 66, "damageTaken": 0.75, "damageDealt": 1.15, "ability": "grapnel_rush"},
+    {"id": "bulwark", "name": "Bulwark", "sm2Id": "tank", "voiceId": "tank", "wave": 2, "card": "card_tank", "runSpeed": 240, "sprintSpeed": 420, "jumpHeight": 56, "damageTaken": 0.6, "damageDealt": 1.1, "ability": "banner"},
+    {"id": "sniper", "name": "Sniper", "sm2Id": "sniper", "voiceId": "sniper", "wave": 2, "card": "card_sniper", "runSpeed": 275, "sprintSpeed": 480, "jumpHeight": 62, "damageTaken": 0.85, "damageDealt": 1.35, "ability": "camo_cloak"}
+  ]
+}

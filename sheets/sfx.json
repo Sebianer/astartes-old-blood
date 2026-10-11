@@ -1,0 +1,14 @@
+{
+  "sheet": "sfx",
+  "doc": "Space Marine 2 sound effects, by Wwise bank and event name. tools/gen.py resolves each event to its media ids in the player's own files (largest take wins) and bakes them into the launcher; the launcher extracts them at setup.",
+  "columns": ["id", "bank", "event"],
+  "rows": [
+    {"id": "sfx_iron_halo", "bank": "ability", "event": "ability_barrier_start"},
+    {"id": "sfx_jump_pack", "bank": "ability", "event": "char_primaris_jetpack_3d_dash"},
+    {"id": "sfx_turret_shot", "bank": "ability", "event": "ability_shoulder_gun_shot"},
+    {"id": "sfx_auspex", "bank": "ability", "event": "ability_auspex_scan_activated"},
+    {"id": "sfx_grapnel", "bank": "ability", "event": "ability_grappling_hook_start"},
+    {"id": "sfx_banner", "bank": "ability", "event": "ability_banner_ultramar_start"},
+    {"id": "sfx_cloak", "bank": "ability", "event": "ability_invisible_on"}
+  ]
+}

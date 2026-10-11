@@ -1,0 +1,14 @@
+{
+  "sheet": "abilities",
+  "doc": "One row per class ability, used with the ability key (V). effect picks the behaviour: invuln = no damage taken; surge = movement multiplied (speedMul, jumpMul); turret = shoulder gun hits the nearest enemy (damage per shot, every interval s, within range units); restore = health and armour refilled; dash = short huge speed burst; slowmo = game time scaled to speedMul; damageBuff = damage dealt multiplied by power. duration and cooldown are seconds. voiceEvent is the Space Marine 2 voice line said on use; sfx names a row in sfx.json; text is the one-line description shown in the class picker.",
+  "columns": ["id", "name", "effect", "duration", "cooldown", "speedMul", "jumpMul", "power", "interval", "range", "voiceEvent", "sfx", "text"],
+  "rows": [
+    {"id": "iron_halo", "name": "Iron Halo", "effect": "invuln", "duration": 5, "cooldown": 25, "speedMul": 1, "jumpMul": 1, "power": 0, "interval": 0, "range": 0, "voiceEvent": "use_ability_barrier", "sfx": "sfx_iron_halo", "text": "an energy field makes you untouchable for 5 seconds"},
+    {"id": "jump_pack_surge", "name": "Jump Pack Surge", "effect": "surge", "duration": 4, "cooldown": 15, "speedMul": 1.7, "jumpMul": 2.5, "power": 0, "interval": 0, "range": 0, "voiceEvent": "use_ability_jumppack", "sfx": "sfx_jump_pack", "text": "run faster and leap far higher for 4 seconds"},
+    {"id": "servo_turret", "name": "Servo Turret", "effect": "turret", "duration": 8, "cooldown": 22, "speedMul": 1, "jumpMul": 1, "power": 35, "interval": 0.5, "range": 1500, "voiceEvent": "use_shoulder_gun", "sfx": "sfx_turret_shot", "text": "your shoulder gun fires at the nearest enemy for 8 seconds"},
+    {"id": "auspex_scan", "name": "Auspex Scan", "effect": "damageBuff", "duration": 8, "cooldown": 20, "speedMul": 1, "jumpMul": 1, "power": 1.6, "interval": 0, "range": 0, "voiceEvent": "use_ability_scan", "sfx": "sfx_auspex", "text": "mark your foes: deal much more damage for 8 seconds"},
+    {"id": "grapnel_rush", "name": "Grapnel Rush", "effect": "dash", "duration": 0.35, "cooldown": 8, "speedMul": 5, "jumpMul": 1, "power": 0, "interval": 0, "range": 0, "voiceEvent": "use_ability_hook", "sfx": "sfx_grapnel", "text": "a short, violent dash forward"},
+    {"id": "banner", "name": "Bulwark Banner", "effect": "restore", "duration": 1, "cooldown": 30, "speedMul": 1, "jumpMul": 1, "power": 0, "interval": 0, "range": 0, "voiceEvent": "use_ability_banner", "sfx": "sfx_banner", "text": "plant the banner: health and armour fully restored"},
+    {"id": "camo_cloak", "name": "Camo Cloak", "effect": "slowmo", "duration": 4, "cooldown": 20, "speedMul": 0.4, "jumpMul": 1, "power": 0, "interval": 0, "range": 0, "voiceEvent": "use_ability_cloak", "sfx": "sfx_cloak", "text": "time slows to a crawl around you for 4 seconds"}
+  ]
+}
